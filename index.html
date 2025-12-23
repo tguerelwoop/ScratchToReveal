@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { margin:0; }
+  canvas { touch-action:none; display:block; }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+const topImg = new Image();
+const bottomImg = new Image();
+
+topImg.src = 'top.jpg';
+bottomImg.src = 'bottom.jpg';
+
+Promise.all([
+  new Promise(r => topImg.onload = r),
+  new Promise(r => bottomImg.onload = r)
+]).then(init);
+
+function init() {
+  canvas.width = bottomImg.width;
+  canvas.height = bottomImg.height;
+
+  ctx.drawImage(bottomImg, 0, 0);
+  ctx.drawImage(topImg, 0, 0);
+}
+
+let drawing = false;
+
+function erase(x, y) {
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.beginPath();
+  ctx.arc(x, y, 25, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+canvas.addEventListener('pointerdown', e => {
+  drawing = true;
+  erase(e.offsetX, e.offsetY);
+});
+
+canvas.addEventListener('pointermove', e => {
+  if (drawing) erase(e.offsetX, e.offsetY);
+});
+
+canvas.addEventListener('pointerup', () => drawing = false);
+canvas.addEventListener('pointerleave', () => drawing = false);
+</script>
+
+</body>
+</html>
