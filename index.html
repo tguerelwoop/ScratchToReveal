@@ -12,8 +12,6 @@
 <canvas id="c"></canvas>
 
 <script>
-
-
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 
@@ -29,19 +27,30 @@ Promise.all([
 ]).then(init);
 
 function init() {
-  canvas.width = bottomImg.width;
-  canvas.height = bottomImg.height;
+  // Scale to phone width
+  const maxWidth = window.innerWidth;
+  const scale = maxWidth / bottomImg.width;
 
-  ctx.drawImage(bottomImg, 0, 0);
-  ctx.drawImage(topImg, 0, 0);
+  canvas.width = bottomImg.width * scale;
+  canvas.height = bottomImg.height * scale;
+
+  // Draw scaled images
+  ctx.drawImage(bottomImg, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(topImg, 0, 0, canvas.width, canvas.height);
+
+  // Save scale for erasing
+  canvas.dataset.scale = scale;
 }
 
 let drawing = false;
 
 function erase(x, y) {
+  const scale = parseFloat(canvas.dataset.scale);
+  const radius = 25 * scale;
+
   ctx.globalCompositeOperation = 'destination-out';
   ctx.beginPath();
-  ctx.arc(x, y, 25, 0, Math.PI * 2);
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
   ctx.fill();
 }
 
