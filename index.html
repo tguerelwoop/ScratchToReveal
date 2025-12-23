@@ -4,7 +4,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   body { margin:0; }
-  canvas { touch-action:none; display:block; }
+  canvas {
+    width: 100vw;   /* scale to phone width */
+    height: auto;
+    display: block;
+    touch-action: none;
+  }
 </style>
 </head>
 <body>
@@ -27,18 +32,16 @@ Promise.all([
 ]).then(init);
 
 function init() {
-  // Scale to phone width
-  const maxWidth = window.innerWidth;
-  const scale = maxWidth / bottomImg.width;
+  // Scale canvas internal resolution to match CSS width
+  const displayWidth = canvas.clientWidth;
+  const scale = displayWidth / bottomImg.width;
 
   canvas.width = bottomImg.width * scale;
   canvas.height = bottomImg.height * scale;
 
-  // Draw scaled images
   ctx.drawImage(bottomImg, 0, 0, canvas.width, canvas.height);
   ctx.drawImage(topImg, 0, 0, canvas.width, canvas.height);
 
-  // Save scale for erasing
   canvas.dataset.scale = scale;
 }
 
