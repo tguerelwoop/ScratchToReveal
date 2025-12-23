@@ -3,75 +3,186 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  body { margin:0; }
-  canvas {
-    width: 100vw;   /* display width */
-    height: auto;
-    display: block;
+  body { margin:0; overflow:hidden; }
+  .scratch-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
     touch-action: none;
+    background: black;
+  }
+  .scratch-container img,
+  .scratch-container canvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+  }
+
+  /* ✨ Sparkle flash */
+  .sparkle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle, white, rgba(255,255,255,0));
+    pointer-events: none;
+    opacity: 1;
+    animation: sparkleFade 0.6s linear forwards;
+  }
+  @keyframes sparkleFade {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(2); opacity: 0; }
+  }
+
+  /* ✨ Drifting glitter particle */
+  .glitter {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: radial-gradient(circle, #ffd6ff, rgba(255,255,255,0));
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0.9;
+    animation: glitterDrift 1.2s ease-out forwards;
+  }
+
+  @keyframes glitterDrift {
+    0% {
+      transform: translate(0, 0) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(var(--dx), var(--dy)) scale(0.5);
+      opacity: 0;
+    }
   }
 </style>
 </head>
 <body>
 
-<canvas id="c"></canvas>
+<div class="scratch-container">
+  <img id="bottom" src="bottom.jpg" alt="">
+  <canvas id="scratchCanvas"></canvas>
+</div>
 
 <script>
-const canvas = document.getElementById('c');
+const canvas = document.getElementById('scratchCanvas');
 const ctx = canvas.getContext('2d');
+const bottomImgEl = document.getElementById('bottom');
 
 const topImg = new Image();
-const bottomImg = new Image();
+topImg.src = 'top.jpg';
 
-topImg.src = 'top.PNG';
-bottomImg.src = 'bottom.PNG';
+topImg.onload = () => {
+  requestAnimationFrame(() => {
+    const rect = bottomImgEl.getBoundingClientRect();
 
-Promise.all([
-  new Promise(r => topImg.onload = r),
-  new Promise(r => bottomImg.onload = r)
-]).then(init);
+    canvas.width = rect.width;
+    canvas.height = rect.height;
 
-function init() {
-  // Scale canvas internal resolution to match CSS width
-  const displayWidth = canvas.clientWidth;
-  const scale = displayWidth / bottomImg.width;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
 
-  canvas.width = bottomImg.width * scale;
-  canvas.height = bottomImg.height * scale;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.drawImage(topImg, 0, 0, canvas.width, canvas.height);
 
-  // Draw bottom image (now visible)
-  ctx.drawImage(bottomImg, 0, 0, canvas.width, canvas.height);
-
-  // Draw top image over it
-  ctx.drawImage(topImg, 0, 0, canvas.width, canvas.height);
-
-  canvas.dataset.scale = scale;
-  console.log("bottom loaded:", bottomImg.width, bottomImg.height);
-}
+    canvas.dataset.ready = '1';
+  });
+};
 
 let drawing = false;
 
-function erase(x, y) {
-  const scale = parseFloat(canvas.dataset.scale);
-  const radius = 25 * scale;
-
+/* ❤️ Heart-shaped erase brush */
+function eraseHeart(x, y) {
+  ctx.save();
   ctx.globalCompositeOperation = 'destination-out';
+
+  const size = 80;
+  ctx.translate(x, y);
+  ctx.scale(size, size);
+
   ctx.beginPath();
-  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.moveTo(0, -0.3);
+  ctx.bezierCurveTo(0.5, -0.8, 1.3, -0.1, 0, 1);
+  ctx.bezierCurveTo(-1.3, -0.1, -0.5, -0.8, 0, -0.3);
+  ctx.closePath();
   ctx.fill();
+
+  ctx.restore();
 }
 
-canvas.addEventListener('pointerdown', e => {
+/* ✨ Sparkle flash */
+function spawnSparkle(x, y) {
+  const sparkle = document.createElement("div");
+  sparkle.className = "sparkle";
+  sparkle.style.left = x + "px";
+  sparkle.style.top = y + "px";
+  document.body.appendChild(sparkle);
+  setTimeout(() => sparkle.remove(), 600);
+}
+
+/* ✨ Drifting glitter particle */
+function spawnGlitter(x, y) {
+  const glitter = document.createElement("div");
+  glitter.className = "glitter";
+
+  // Random drift direction
+  const dx = (Math.random() * 60 - 30) + "px";
+  const dy = (Math.random() * -60) + "px";
+
+  glitter.style.setProperty("--dx", dx);
+  glitter.style.setProperty("--dy", dy);
+
+  glitter.style.left = x + "px";
+  glitter.style.top = y + "px";
+
+  document.body.appendChild(glitter);
+  setTimeout(() => glitter.remove(), 1200);
+}
+
+function handleErase(event) {
+  if (canvas.dataset.ready !== '1') return;
+
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+
+  eraseHeart(x, y);
+
+  // Sparkle flash
+  spawnSparkle(event.clientX, event.clientY);
+
+  // Multiple drifting glitter particles
+  for (let i = 0; i < 3; i++) {
+    spawnGlitter(event.clientX, event.clientY);
+  }
+}
+
+/* Mouse */
+canvas.addEventListener('mousedown', e => {
   drawing = true;
-  erase(e.offsetX, e.offsetY);
+  handleErase(e);
 });
-
-canvas.addEventListener('pointermove', e => {
-  if (drawing) erase(e.offsetX, e.offsetY);
+canvas.addEventListener('mousemove', e => {
+  if (drawing) handleErase(e);
 });
+window.addEventListener('mouseup', () => drawing = false);
 
-canvas.addEventListener('pointerup', () => drawing = false);
-canvas.addEventListener('pointerleave', () => drawing = false);
+/* Touch */
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  drawing = true;
+  handleErase(e.touches[0]);
+});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (drawing) handleErase(e.touches[0]);
+});
+window.addEventListener('touchend', () => drawing = false);
 </script>
 
 </body>
