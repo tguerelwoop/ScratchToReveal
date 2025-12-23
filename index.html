@@ -18,8 +18,8 @@ const ctx = canvas.getContext('2d');
 const topImg = new Image();
 const bottomImg = new Image();
 
-topImg.src = 'top.jpg';
-bottomImg.src = 'bottom.jpg';
+topImg.src = 'top.PNG';
+bottomImg.src = 'bottom.PNG';
 
 Promise.all([
   new Promise(r => topImg.onload = r),
