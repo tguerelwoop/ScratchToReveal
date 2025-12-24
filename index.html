@@ -3,15 +3,19 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  body { margin:0; overflow:hidden; }
+  body { margin:0; overflow:hidden; font-family: 'Trebuchet MS', sans-serif; }
+
+  /* Container for everything */
   .scratch-container {
     position: relative;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
     touch-action: none;
-    background: black;
+    background: rgb(255, 255, 255);
   }
+
+  /* Bottom image + canvas */
   .scratch-container img,
   .scratch-container canvas {
     position: absolute;
@@ -23,12 +27,67 @@
     display: block;
   }
 
-  /* ✨ Sparkle flash */
+  /* Intro overlay */
+  .intro-screen {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: opacity 0.6s ease;
+  }
+
+  .intro-card {
+    background: #EDC9D5;
+    padding: 30px 40px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    animation: popIn 0.5s ease;
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .intro-title {
+    font-size: 28px;
+    margin-bottom: 10px;
+    color: #BF4068;
+  }
+
+  .intro-sub {
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: #FFF7FA;
+  }
+
+  .start-btn {
+    background: #9D3455;
+    color: white;
+    padding: 12px 26px;
+    border-radius: 30px;
+    font-size: 20px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+
+  .start-btn:hover {
+    background: #D47D99;
+    transform: scale(1.05);
+  }
+
+  /* Sparkle flash */
   .sparkle {
     position: absolute;
     width: 8px;
     height: 8px;
-    background: radial-gradient(circle, white, rgba(255,255,255,0));
+    background: radial-gradient(circle, #ffe093, rgba(255,255,255,0));
     pointer-events: none;
     opacity: 1;
     animation: sparkleFade 0.6s linear forwards;
@@ -38,7 +97,7 @@
     100% { transform: scale(2); opacity: 0; }
   }
 
-  /* ✨ Drifting glitter particle */
+  /* ✨ Drifting glitter */
   .glitter {
     position: absolute;
     width: 6px;
@@ -51,21 +110,27 @@
   }
 
   @keyframes glitterDrift {
-    0% {
-      transform: translate(0, 0) scale(1);
-      opacity: 1;
-    }
-    100% {
-      transform: translate(var(--dx), var(--dy)) scale(0.5);
-      opacity: 0;
-    }
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(0.5); opacity: 0; }
   }
 </style>
 </head>
 <body>
 
 <div class="scratch-container">
+
+  <!-- Intro Screen -->
+  <div class="intro-screen" id="intro">
+    <div class="intro-card">
+      <div class="intro-title"> scratch to reveal !</div>
+      <div class="intro-sub">use your finger or mouse to uncover the surprise <3</div>
+      <button class="start-btn" onclick="startScratch()">Start</button>
+    </div>
+  </div>
+
+  <!-- Bottom image -->
   <img id="bottom" src="bottom.jpg" alt="">
+  <!-- Top image canvas -->
   <canvas id="scratchCanvas"></canvas>
 </div>
 
@@ -73,9 +138,16 @@
 const canvas = document.getElementById('scratchCanvas');
 const ctx = canvas.getContext('2d');
 const bottomImgEl = document.getElementById('bottom');
+const intro = document.getElementById('intro');
 
 const topImg = new Image();
 topImg.src = 'top.jpg';
+
+/* ✨ Fade out intro screen */
+function startScratch() {
+  intro.style.opacity = "0";
+  setTimeout(() => intro.style.display = "none", 600);
+}
 
 topImg.onload = () => {
   requestAnimationFrame(() => {
@@ -96,12 +168,12 @@ topImg.onload = () => {
 
 let drawing = false;
 
-/* ❤️ Heart-shaped erase brush */
+/* Heart-shaped erase brush */
 function eraseHeart(x, y) {
   ctx.save();
   ctx.globalCompositeOperation = 'destination-out';
 
-  const size = 80;
+  const size = 20;
   ctx.translate(x, y);
   ctx.scale(size, size);
 
@@ -115,7 +187,7 @@ function eraseHeart(x, y) {
   ctx.restore();
 }
 
-/* ✨ Sparkle flash */
+/* Sparkle flash */
 function spawnSparkle(x, y) {
   const sparkle = document.createElement("div");
   sparkle.className = "sparkle";
@@ -125,12 +197,11 @@ function spawnSparkle(x, y) {
   setTimeout(() => sparkle.remove(), 600);
 }
 
-/* ✨ Drifting glitter particle */
+/*  Drifting glitter */
 function spawnGlitter(x, y) {
   const glitter = document.createElement("div");
   glitter.className = "glitter";
 
-  // Random drift direction
   const dx = (Math.random() * 60 - 30) + "px";
   const dy = (Math.random() * -60) + "px";
 
@@ -153,10 +224,8 @@ function handleErase(event) {
 
   eraseHeart(x, y);
 
-  // Sparkle flash
   spawnSparkle(event.clientX, event.clientY);
 
-  // Multiple drifting glitter particles
   for (let i = 0; i < 3; i++) {
     spawnGlitter(event.clientX, event.clientY);
   }
