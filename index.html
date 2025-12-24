@@ -3,7 +3,11 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  body { margin:0; overflow:hidden; font-family: 'Trebuchet MS', sans-serif; }
+
+  @font-face { font-family: ROSSTEN; src: url('ROSSTEN.otf'); }
+  @font-face { font-family: CocoGoose; src: url('CocoGoose.ttf'); }
+
+  body { margin:0; overflow:hidden; font-family: 'ROSSTEN', sans-serif; }
 
   /* Container for everything */
   .scratch-container {
@@ -41,11 +45,13 @@
   }
 
   .intro-card {
-    background: #EDC9D5;
-    padding: 30px 40px;
+    background-image: url(Frame.png);
+    background-repeat: no-repeat;
+    background-size: 500px 300px;
+    background-position: center;
+    padding: 100px 100px;
     border-radius: 20px;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
     animation: popIn 0.5s ease;
   }
 
@@ -61,9 +67,10 @@
   }
 
   .intro-sub {
-    font-size: 18px;
+    font-size: 14px;
+    font-family: CocoGoose, sans-serif;
     margin-bottom: 20px;
-    color: #FFF7FA;
+    color: #421022;
   }
 
   .start-btn {
@@ -71,6 +78,7 @@
     color: white;
     padding: 12px 26px;
     border-radius: 30px;
+    font-family: CocoGoose, sans-serif;
     font-size: 20px;
     border: none;
     cursor: pointer;
@@ -122,9 +130,9 @@
   <!-- Intro Screen -->
   <div class="intro-screen" id="intro">
     <div class="intro-card">
-      <div class="intro-title"> scratch to reveal !</div>
-      <div class="intro-sub">use your finger or mouse to uncover the surprise <3</div>
-      <button class="start-btn" onclick="startScratch()">Start</button>
+      <div class="intro-title"> SCRATCH TO REVEAL</div>
+      <div class="intro-sub">USE YOUR FINGER OR MOUSE TO UNCOVER THE SURPRISE </div>
+      <button class="start-btn" onclick="startScratch()">START</button>
     </div>
   </div>
 
@@ -132,6 +140,7 @@
   <img id="bottom" src="bottom.jpg" alt="">
   <!-- Top image canvas -->
   <canvas id="scratchCanvas"></canvas>
+
 </div>
 
 <script>
